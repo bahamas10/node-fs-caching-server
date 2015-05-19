@@ -48,9 +48,9 @@ var usage = [
   '  -d, --debug               enable debug logging to stderr',
   '  -H, --host <host>         [env FS_CACHE_HOST] the host on which to listen, defaults to ' + opts.host,
   '  -h, --help                print this message and exit',
-  '  -p, --port <port>         [env FS_CACHE_PORT] print this message and exit',
+  '  -p, --port <port>         [env FS_CACHE_PORT] the port on which to listen, defaults to ' + opts.port,
   '  -r, --regex <regex>       [env FS_CACHE_REGEX] regex to match to cache files, defaults to ' + opts.regex,
-  '  -U, --url <url>           [env FS_CACHE_URL] URL to proxy to, defaults to ' + opts.url,
+  '  -U, --url <url>           [env FS_CACHE_URL] URL to proxy to',
   '  -u, --updates             check npm for available updates',
   '  -v, --version             print the version number and exit',
 ].join('\n');

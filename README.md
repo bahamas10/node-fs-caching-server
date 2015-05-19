@@ -60,9 +60,9 @@ Usage
       -d, --debug               enable debug logging to stderr
       -H, --host <host>         [env FS_CACHE_HOST] the host on which to listen, defaults to 0.0.0.0
       -h, --help                print this message and exit
-      -p, --port <port>         [env FS_CACHE_PORT] print this message and exit
+      -p, --port <port>         [env FS_CACHE_PORT] the port on which to listen, defaults to 8080
       -r, --regex <regex>       [env FS_CACHE_REGEX] regex to match to cache files, defaults to \.(png|jpg|jpeg|css|html|js|tar|tgz|tar\.gz)$
-      -U, --url <url>           [env FS_CACHE_URL] URL to proxy to, defaults to undefined
+      -U, --url <url>           [env FS_CACHE_URL] URL to proxy to
       -u, --updates             check npm for available updates
       -v, --version             print the version number and exit
 
