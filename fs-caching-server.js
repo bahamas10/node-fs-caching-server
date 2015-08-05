@@ -284,7 +284,6 @@ function finish(file, ores) {
         });
         streamfile(file, stats, req, res);
       });
-      return;
     } else {
       // not found
       inprogress[file].forEach(function(o) {
