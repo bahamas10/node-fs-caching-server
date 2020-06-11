@@ -18,6 +18,7 @@ var mime = require('mime');
 var mkdirp = require('mkdirp');
 var path = require('path-platform');
 var uuid = require('node-uuid');
+var clone = require("readable-stream-clone");
 
 var package = require('./package.json');
 
@@ -239,8 +240,10 @@ function onrequest(req, res) {
           ores.unpipe(ws);
           finish();
         });
-        ores.pipe(ws);
-        ores.pipe(res);
+        ores_ws = new clone(ores);
+        ores_res = new clone(ores);
+        ores_ws.pipe(ws);
+        ores_res.pipe(res);
       });
     });
     oreq.on('error', function(e) {
