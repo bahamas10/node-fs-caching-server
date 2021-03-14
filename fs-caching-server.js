@@ -228,37 +228,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
      * to a file that doesn't match the regex, gets proxied directly.
      */
     if (self.cacheMethods.indexOf(req.method) < 0 || ! self.regex.test(file)) {
-        log('request will be proxied with no caching');
-
-        var uristring = self.backendUrl + parsed.path;
-        var uri = url.parse(uristring);
-        uri.method = req.method;
-        uri.headers = {};
-
-        Object.keys(req.headers || {}).forEach(function (header) {
-            if (self.noProxyHeaders.indexOf(header) === -1) {
-                uri.headers[header] = req.headers[header];
-            }
-        });
-
-        uri.headers.host = uri.host;
-
-        var oreq = self._request(uri, function (ores) {
-            res.statusCode = ores.statusCode;
-            Object.keys(ores.headers || {}).forEach(function (header) {
-                if (self.noProxyHeaders.indexOf(header) === -1) {
-                    res.setHeader(header, ores.headers[header]);
-                }
-            });
-            ores.pipe(res);
-        });
-
-        oreq.once('error', function (e) {
-            res.statusCode = 500;
-            res.end();
-        });
-
-        req.pipe(oreq);
+        proxyRequest();
         return;
     }
 
@@ -290,6 +260,20 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
                 req: req,
                 res: res,
             });
+            return;
+        }
+
+        /*
+         * If we are here the file matches the caching requirements based on
+         * method and regex, and is also not found on the local filesystem.
+         *
+         * The final step before caching the request is to ensure it is *not* a
+         * HEAD requests.  HEAD requests should only ever be cached if the data
+         * was retrieved and cached first by another type of request.  In this
+         * specific case the HEAD request should just be proxied directly.
+         */
+        if (req.method === 'HEAD') {
+            proxyRequest();
             return;
         }
 
@@ -382,6 +366,44 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
 
         oreq.end();
     });
+
+    /*
+     * Proxy file directly with no caching
+     */
+    function proxyRequest() {
+        log('request will be proxied with no caching');
+
+        var uristring = self.backendUrl + parsed.path;
+        var uri = url.parse(uristring);
+        uri.method = req.method;
+        uri.headers = {};
+
+        Object.keys(req.headers || {}).forEach(function (header) {
+            if (self.noProxyHeaders.indexOf(header) === -1) {
+                uri.headers[header] = req.headers[header];
+            }
+        });
+
+        uri.headers.host = uri.host;
+
+        var oreq = self._request(uri, function (ores) {
+            res.statusCode = ores.statusCode;
+            Object.keys(ores.headers || {}).forEach(function (header) {
+                if (self.noProxyHeaders.indexOf(header) === -1) {
+                    res.setHeader(header, ores.headers[header]);
+                }
+            });
+            ores.pipe(res);
+        });
+
+        oreq.once('error', function (e) {
+            res.statusCode = 500;
+            res.end();
+        });
+
+        req.pipe(oreq);
+        return;
+    }
 
     /*
      * Process requests that may be blocked on the current file to be cached.
