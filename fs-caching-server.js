@@ -544,7 +544,7 @@ function main() {
         cacheDir: process.env.FS_CACHE_DIR || process.cwd(),
         regex: process.env.FS_CACHE_REGEX,
     };
-    var debug = false;
+    var debug = !!process.env.FS_CACHE_DEBUG;
 
     var usage = [
         'usage: fs-caching-server [options]',
