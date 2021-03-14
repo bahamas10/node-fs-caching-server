@@ -388,6 +388,7 @@ test('Two simultaneous requests', function (t) {
             return;
         }
 
+        fs.stat = originalStat;
         cachingServer.onIdle(function () {
             t.equal(data1, data2, 'data the same');
             t.end();
