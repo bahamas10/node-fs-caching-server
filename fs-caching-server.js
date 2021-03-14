@@ -63,6 +63,36 @@ function hap(o, p) {
  *                                          server, host].
  *    opts.cacheMethods   Array  (Optional) An array of methods to proxy,
  *                                          default is [GET, HEAD].
+ *
+ * Methods
+ *
+ * .start()
+ *  - Start the server.
+ *
+ * .stop()
+ *  - Stop the server.
+ *
+ * .onIdle(cb)
+ *  - Call the callback when the caching server is "idle" (see events below).
+ *
+ * Events
+ *
+ * 'start'
+ *  - Called when the listener is started.
+ *
+ * 'stop'
+ *  - Called when the listener is stopped.
+ *
+ * 'access-log'
+ *  - Called per-request with a CLF-formatted apache log style string.
+ *
+ * 'log'
+ *  - Called with debug logs from the server - useful for debugging.
+ *
+ * 'idle'
+ *  - Called when the server is idle.  "idle" does not mean there are not
+ *  pending web requests, but instead means there are no pending filesystem
+ *  actions remaining.  This is useful for writing automated tests.
  */
 function FsCachingServer(opts) {
     var self = this;
@@ -93,17 +123,6 @@ function FsCachingServer(opts) {
 util.inherits(FsCachingServer, events.EventEmitter);
 
 /*
- * Emit a "log" event with the given arguments (formatted via util.format)
- */
-FsCachingServer.prototype.log = function log() {
-    var self = this;
-
-    var s = util.format.apply(util, arguments);
-
-    self.emit('log', s);
-};
-
-/*
  * Start the server
  *
  * emits "listening" when the server starts
@@ -114,7 +133,7 @@ FsCachingServer.prototype.start = function start() {
     assert(!self.server, 'server already exists');
     assert(!self.inProgress, 'requests in progress');
 
-    self.log('starting server');
+    self._log('starting server');
 
     self.server = http.createServer(onRequest);
     self.server.listen(self.port, self.host, onListen);
@@ -122,10 +141,10 @@ FsCachingServer.prototype.start = function start() {
     self.idle = true;
 
     function onListen() {
-        self.log('listening on http://%s:%d', self.host, self.port);
-        self.log('proxying requests to %s', self.backendUrl);
-        self.log('caching matches of %s', self.regex);
-        self.log('caching to %s', self.cacheDir);
+        self._log('listening on http://%s:%d', self.host, self.port);
+        self._log('proxying requests to %s', self.backendUrl);
+        self._log('caching matches of %s', self.regex);
+        self._log('caching to %s', self.cacheDir);
 
         self.emit('start');
     }
@@ -180,7 +199,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
 
     function log() {
         var s = util.format.apply(util, arguments);
-        self.log('[%s] %s', _id, s);
+        self._log('[%s] %s', _id, s);
     }
 
     accesslog(req, res, undefined, function (s) {
@@ -375,12 +394,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
             });
 
             delete self.inProgress[file];
-
-            if (Object.keys(self.inProgress).length === 0) {
-                self.idle = true;
-                self.emit('idle');
-            }
-
+            checkIdle();
             return;
         }
 
@@ -414,13 +428,30 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
             }
 
             delete self.inProgress[file];
-
-            if (Object.keys(self.inProgress).length === 0) {
-                self.idle = true;
-                self.emit('idle');
-            }
+            checkIdle();
         });
     }
+
+    /*
+     * Check if the server is idle and emit an event if it is
+     */
+    function checkIdle() {
+        if (Object.keys(self.inProgress).length === 0) {
+            self.idle = true;
+            self.emit('idle');
+        }
+    }
+};
+
+/*
+ * Emit a "log" event with the given arguments (formatted via util.format)
+ */
+FsCachingServer.prototype._log = function _log() {
+    var self = this;
+
+    var s = util.format.apply(util, arguments);
+
+    self.emit('log', s);
 };
 
 /*

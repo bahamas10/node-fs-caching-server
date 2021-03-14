@@ -6,17 +6,18 @@ A caching HTTP server/proxy that stores data on the local filesystem
 Installation
 ------------
 
-    [sudo] npm install -g fs-caching-server
+    [sudo] npm install [-g] fs-caching-server
 
-Description
------------
+CLI
+---
+
+### Description
 
 The `fs-caching-server` program installed can be used to spin up an HTTP server
 that acts a proxy to any other HTTP(s) server - with the added ability to
 cache GET and HEAD requests that match a given regex.
 
-Example
--------
+### Example
 
 This will create a caching proxy that fronts Joyent's pkgsrc servers
 
@@ -49,22 +50,156 @@ and the local filesystem.  The second request shows the file was already
 present so it was streamed to the client without ever reaching out to
 pkgsrc.joyent.com.
 
-Usage
------
+### Usage
 
     $ fs-caching-server -h
     usage: fs-caching-server [options]
 
     options
-      -c, --cache-dir <dir>     directory to use for caching data, defaults to CWD
+      -c, --cache-dir <dir>     [env FS_CACHE_DIR] directory to use for caching data, defaults to CWD
       -d, --debug               enable debug logging to stderr
       -H, --host <host>         [env FS_CACHE_HOST] the host on which to listen, defaults to 0.0.0.0
       -h, --help                print this message and exit
       -p, --port <port>         [env FS_CACHE_PORT] the port on which to listen, defaults to 8080
-      -r, --regex <regex>       [env FS_CACHE_REGEX] regex to match to cache files, defaults to \.(png|jpg|jpeg|css|html|js|tar|tgz|tar\.gz)$
+      -r, --regex <regex>       [env FS_CACHE_REGEX] regex to match to cache files, defaults to undefined
       -U, --url <url>           [env FS_CACHE_URL] URL to proxy to
       -u, --updates             check npm for available updates
       -v, --version             print the version number and exit
+
+Module
+------
+
+### Description
+
+This module can also be used as a JavaScript module.
+
+### Example
+
+``` js
+var FsCachingServer = require('fs-caching-server').FsCachingServer;
+
+// proxy to Joyent's pkgsrc
+var opts = {
+    cacheDir: '/home/dave/cache-dir',
+    host: '0.0.0.0',
+    port: 8080,
+    backendUrl: 'http://pkgsrc.joyent.com'
+};
+
+var cachingServer = new FsCachingServer(opts);
+
+cachingServer.once('start', function () {
+    console.log('server started');
+});
+
+if (process.env.NODE_DEBUG) {
+    // debug messages go to stderr
+    cachingServer.on('log', console.error);
+}
+
+// access log messages to stdout
+cachingServer.on('access-log', console.log);
+
+cachingServer.start();
+```
+
+### Usage
+
+``` js
+/*
+ * FsCachingServer
+ *
+ * Create an instance of an FS Caching Server
+ *
+ * Aurguments
+ *  opts                  Object
+ *    opts.host           String (Required) Host to bind to. ex: '0.0.0.0',
+ *                                          '127.0.0.1', etc.
+ *    opts.port           Number (Required) Port to bind to. ex: 80, 8080, etc.
+ *    opts.backendUrl     String (Required) URL of the backend to proxy
+ *                                          requests to. ex:
+ *                                          'http://1.2.3.4:5678'
+ *    opts.cacheDir       String (Required) Directory for the cached items. ex:
+ *                                          '/tmp/fs-caching-server'
+ *    opts.regex          RegExp (Optional) Regex to match to enable caching,
+ *                                          defaults to REGEX above.
+ *    opts.noProxyHeaders Array  (Optional) An array of headers to not proxy to
+ *                                          the backend, default is [date,
+ *                                          server, host].
+ *    opts.cacheMethods   Array  (Optional) An array of methods to proxy,
+ *                                          default is [GET, HEAD].
+ *
+ * Methods
+ *
+ * .start()
+ *  - Start the server.
+ *
+ * .stop()
+ *  - Stop the server.
+ *
+ * .onIdle(cb)
+ *  - Call the callback when the caching server is "idle" (see events below).
+ *
+ * Events
+ *
+ * 'start'
+ *  - Called when the listener is started.
+ *
+ * 'stop'
+ *  - Called when the listener is stopped.
+ *
+ * 'access-log'
+ *  - Called per-request with a CLF-formatted apache log style string.
+ *
+ * 'log'
+ *  - Called with debug logs from the server - useful for debugging.
+ *
+ * 'idle'
+ *  - Called when the server is idle.  "idle" does not mean there are not
+ *  pending web requests, but instead means there are no pending filesystem
+ *  actions remaining.  This is useful for writing automated tests.
+ */
+ ```
+
+Testing
+-------
+
+```
+$ NODE_DEBUG=1 npm test
+
+
+> fs-caching-server@0.0.3 test /home/dave/dev/node-fs-caching-server
+> ./node_modules/tape/bin/tape tests/*.js
+
+TAP version 13
+# start cachingServer
+ok 1 tmp dir "/home/dave/dev/node-fs-caching-server/tests/tmp" cleared
+starting server
+listening on http://127.0.0.1:8081
+proxying requests to http://127.0.0.1:8080
+caching matches of /\.(png|jpg|jpeg|css|html|js|tar|tgz|tar\.gz)$/
+caching to /home/dave/dev/node-fs-caching-server/tests/tmp
+ok 2 cachingServer started
+# start backendServer
+ok 3 backendServer started on http://127.0.0.1:8080
+# simple cached request
+[63e44996-ac28-4a0f-b306-61aeeb88b53c] INCOMING REQUEST - GET /hello.png
+[63e44996-ac28-4a0f-b306-61aeeb88b53c] proxying GET to http://127.0.0.1:8080/hello.png
+[63e44996-ac28-4a0f-b306-61aeeb88b53c] saving local file to /home/dave/dev/node-fs-caching-server/tests/tmp/hello.png.in-progress
+[63e44996-ac28-4a0f-b306-61aeeb88b53c] 127.0.0.1 - - [13/Mar/2021:20:58:52 -0500] "GET /hello.png HTTP/1.1" 200 48 "-" "-"
+...
+...
+...
+ok 50 backendServer closed
+# stop cachingServer
+ok 51 cachingServer stopped
+
+1..51
+# tests 51
+# pass  51
+
+# ok
+```
 
 License
 -------
