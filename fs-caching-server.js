@@ -236,7 +236,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
         uri.headers = {};
 
         Object.keys(req.headers || {}).forEach(function (header) {
-            if (NO_PROXY_HEADERS.indexOf(header) === -1) {
+            if (self.noProxyHeaders.indexOf(header) === -1) {
                 uri.headers[header] = req.headers[header];
             }
         });
@@ -246,8 +246,9 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
         var oreq = self._request(uri, function (ores) {
             res.statusCode = ores.statusCode;
             Object.keys(ores.headers || {}).forEach(function (header) {
-                if (NO_PROXY_HEADERS.indexOf(header) === -1)
+                if (self.noProxyHeaders.indexOf(header) === -1) {
                     res.setHeader(header, ores.headers[header]);
+                }
             });
             ores.pipe(res);
         });
@@ -301,8 +302,9 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
         uri.method = req.method;
         uri.headers = {};
         Object.keys(req.headers || {}).forEach(function (header) {
-            if (NO_PROXY_HEADERS.indexOf(header) === -1)
+            if (self.noProxyHeaders.indexOf(header) === -1) {
                 uri.headers[header] = req.headers[header];
+            }
         });
         uri.headers.host = uri.host;
 
@@ -313,7 +315,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
             res.statusCode = ores.statusCode;
 
             Object.keys(ores.headers || {}).forEach(function (header) {
-                if (NO_PROXY_HEADERS.indexOf(header) === -1) {
+                if (self.noProxyHeaders.indexOf(header) === -1) {
                     res.setHeader(header, ores.headers[header]);
                 }
             });
@@ -414,7 +416,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
                     o.res.statusCode = opts.ores.statusCode;
 
                     Object.keys(opts.ores.headers || {}).forEach(function (header) {
-                        if (NO_PROXY_HEADERS.indexOf(header) === -1) {
+                        if (self.noProxyHeaders.indexOf(header) === -1) {
                             o.res.setHeader(header, opts.ores.headers[header]);
                         }
                     });
