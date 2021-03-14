@@ -22,9 +22,9 @@ cache GET and HEAD requests that match a given regex.
 This will create a caching proxy that fronts Joyent's pkgsrc servers
 
     $ mkdir cache
-    $ fs-caching-server -c cache/ -d -U http://pkgsrc.joyent.com
+    $ fs-caching-server -c cache/ -d -U https://pkgsrc.joyent.com
     listening on http://0.0.0.0:8080
-    proxying requests to http://pkgsrc.joyent.com
+    proxying requests to https://pkgsrc.joyent.com
     caching matches of /\.(png|jpg|jpeg|css|html|js|tar|tgz|tar\.gz)$/
     caching to /home/dave/dev/fs-caching-server/cache
 
@@ -83,7 +83,7 @@ var opts = {
     cacheDir: '/home/dave/cache-dir',
     host: '0.0.0.0',
     port: 8080,
-    backendUrl: 'http://pkgsrc.joyent.com'
+    backendUrl: 'https://pkgsrc.joyent.com'
 };
 
 var cachingServer = new FsCachingServer(opts);
