@@ -40,7 +40,13 @@ function cacheRequest(p, opts, cb) {
 
     var uri = f('%s%s', cachingServerURL, p);
 
-    var req = http.request(uri, opts, function (res) {
+    var o = url.parse(uri);
+    Object.keys(opts).forEach(function (key) {
+        var val = opts[key];
+        o[key] = val;
+    });
+
+    var req = http.request(o, function (res) {
         var data = '';
 
         res.setEncoding('utf-8');
