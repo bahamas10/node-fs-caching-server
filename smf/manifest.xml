@@ -9,6 +9,7 @@
 		<method_context working_directory='/tmp'>
 			<method_credential user='nobody' group='other'/>
 			<method_environment>
+				<envvar name='FS_CACHE_DIR' value='/var/tmp/cache'/> <!-- the cache dir -->
 				<envvar name='FS_CACHE_URL' value='http://pkgsrc.joyent.com'/> <!-- the URL you want to proxy -->
 				<envvar name='FS_CACHE_HOST' value='0.0.0.0'/>
 				<envvar name='FS_CACHE_PORT' value='8080'/>
