@@ -402,6 +402,33 @@ test('Two simultaneous requests', function (t) {
     }
 });
 
+/*
+ * HEAD requests should only server cached results and not cache them itself.
+ * i.e. if a HEAD request is seen first it should just be proxied to the
+ * backend directly with no caching.
+ */
+test('HEAD request', function (t) {
+    var uri = '/head-cache-test.png';
+
+    cacheRequest(uri, {method: 'HEAD'}, function (err, data, res) {
+        t.error(err, 'HEAD ' + uri);
+
+        cachingServer.onIdle(function () {
+            // check to make sure the cache DOES NOT have this data
+            var file = path.join(dir, uri);
+
+            t.throws(function () {
+                fs.statSync(file);
+            }, file + ' should not exist');
+
+            t.end();
+        });
+    });
+});
+
+/*
+ * Close the backend HTTP server
+ */
 test('close backendServer', function (t) {
     backendServer.once('close', function () {
         t.pass('backendServer closed');
@@ -410,6 +437,9 @@ test('close backendServer', function (t) {
     backendServer.close();
 });
 
+/*
+ * Stop the caching server
+ */
 test('stop cachingServer', function (t) {
     cachingServer.once('stop', function () {
         t.pass('cachingServer stopped');
