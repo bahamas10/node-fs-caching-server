@@ -10,6 +10,7 @@
 var events = require('events');
 var fs = require('fs');
 var http = require('http');
+var https = require('https');
 var path = require('path');
 var url = require('url');
 var util = require('util');
@@ -117,6 +118,7 @@ function FsCachingServer(opts) {
     self.cacheMethods = opts.cacheMethods || CACHE_METHODS;
     self.server = null;
     self.idle = true;
+    self.backendHttps = !!self.backendUrl.match(/^https:/);
 
     self._opts = opts;
 }
@@ -241,7 +243,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
 
         uri.headers.host = uri.host;
 
-        var oreq = http.request(uri, function (ores) {
+        var oreq = self._request(uri, function (ores) {
             res.statusCode = ores.statusCode;
             Object.keys(ores.headers || {}).forEach(function (header) {
                 if (NO_PROXY_HEADERS.indexOf(header) === -1)
@@ -307,7 +309,7 @@ FsCachingServer.prototype._onRequest = function _onRequest(req, res) {
         log('proxying %s to %s', uri.method, uristring);
 
         // proxy it
-        var oreq = http.request(uri, function (ores) {
+        var oreq = self._request(uri, function (ores) {
             res.statusCode = ores.statusCode;
 
             Object.keys(ores.headers || {}).forEach(function (header) {
@@ -452,6 +454,19 @@ FsCachingServer.prototype._log = function _log() {
     var s = util.format.apply(util, arguments);
 
     self.emit('log', s);
+};
+
+/*
+ * Create an outgoing http/https request based on the backend URL
+ */
+FsCachingServer.prototype._request = function _request(uri, cb) {
+    var self = this;
+
+    if (self.backendHttps) {
+        return https.request(uri, cb);
+    } else {
+        return http.request(uri, cb);
+    }
 };
 
 /*
