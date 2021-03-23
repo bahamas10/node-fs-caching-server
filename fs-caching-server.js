@@ -608,10 +608,9 @@ function main() {
 
     var fsCachingServer = new FsCachingServer(opts);
 
+    fsCachingServer.on('access-log', console.log);
     if (debug) {
         fsCachingServer.on('log', console.error);
-    } else {
-        fsCachingServer.on('access-log', console.log);
     }
 
     fsCachingServer.start();
