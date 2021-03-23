@@ -8,6 +8,19 @@ Installation
 
     [sudo] npm install [-g] fs-caching-server
 
+`v1.0.0` Release Notes
+----------------------
+
+`v1.0.0` adds the following changes as well as bug fixes.
+
+- Fixes HEAD before GET caching - old behavior would cache 0-byte files
+- Handles redirects (or more accurately, doesn't handle - just proxies them)
+- Can retrieve from an HTTPS backend URL
+- Tests! there were none before - now a lot of tests have been added to ensure functionality
+- Can be used as a module (this added mostly for testing)
+- Cache dir can be specified as an argument/env variable - CWD not required anymore
+- Access logs now contain debug UUID if debug is specified
+
 CLI
 ---
 
