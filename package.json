@@ -5,7 +5,7 @@
   "main": "fs-caching-server.js",
   "preferGlobal": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/tape/bin/tape tests/*.js"
   },
   "bin": {
     "fs-caching-server": "./fs-caching-server.js"
@@ -26,13 +26,17 @@
   },
   "homepage": "https://github.com/bahamas10/node-fs-caching-server",
   "dependencies": {
-    "access-log": "^0.3.9",
+    "access-log": "^0.4.1",
+    "assert-plus": "^1.0.0",
     "latest": "^0.2.0",
     "mime": "^1.3.4",
     "mkdirp": "^0.5.0",
-    "node-uuid": "^1.4.3",
-    "path-platform": "^0.11.15",
-    "posix-getopt": "^1.1.0",
-    "readable-stream-clone": "^0.0.7"
+    "posix-getopt": "^1.2.0",
+    "readable-stream-clone": "^0.0.7",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "tape": "^5.2.2"
   }
 }
