@@ -1,6 +1,6 @@
 {
   "name": "fs-caching-server",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "A caching HTTP server/proxy that stores data on the local filesystem",
   "main": "fs-caching-server.js",
   "preferGlobal": true,
