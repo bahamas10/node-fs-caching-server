@@ -539,12 +539,23 @@ function main() {
     // command line arguments
     var opts = {
         host: process.env.FS_CACHE_HOST || '0.0.0.0',
-        port: process.env.FS_CACHE_PORT || 8080,
+        port: process.env.FS_CACHE_PORT,
         backendUrl: process.env.FS_CACHE_URL,
         cacheDir: process.env.FS_CACHE_DIR || process.cwd(),
         regex: process.env.FS_CACHE_REGEX,
     };
     var debug = !!process.env.FS_CACHE_DEBUG;
+
+    if (opts.port) {
+        var i = parseInt(opts.port, 10);
+        if (isNaN(i)) {
+            console.error('FS_CACHE_PORT must be a number, got "%s"', opts.port);
+            process.exit(1);
+        }
+        opts.port = i;
+    } else {
+        opts.port = 8080;
+    }
 
     var usage = [
         'usage: fs-caching-server [options]',
